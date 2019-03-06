@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "268458311828",
+    "firebase_url": "https://communitywatch-63cdd.firebaseio.com",
+    "project_id": "communitywatch-63cdd",
+    "storage_bucket": "communitywatch-63cdd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268458311828:android:8f4f9ec2cb8bbf9f",
+        "android_client_info": {
+          "package_name": "com.example.hal9000.communitywatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268458311828-rfg47eepnd44fojah22g61d0q01vb5jr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0TQlAfDO9lowzhU4lPoaWBwZd3jpIPWE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

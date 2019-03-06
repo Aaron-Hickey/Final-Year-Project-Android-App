@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/MessageDescription"
+            android:layout_width="match_parent"
+            android:layout_height="126dp"
+            android:ems="10"
+            android:hint="Please describe what's happening"
+            android:inputType="textMultiLine"
+            android:maxLength="80" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".MapsActivity" />
+
+            <TextView
+                android:id="@+id/hintMap"
+                android:layout_width="match_parent"
+                android:layout_height="43dp"
+                android:layout_gravity="top"
+                android:gravity="bottom|left|center_horizontal"
+                android:text=" Where is it happening?"
+                android:textSize="18sp"
+                android:textStyle="normal" />
+        </FrameLayout>
+
+
+        <EditText
+            android:id="@+id/MessageName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="(Optional) Name"
+            android:inputType="textPersonName"
+            android:maxLength="20" />
+
+        <EditText
+            android:id="@+id/MessagePhoneNo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="(Optional) Mobile No."
+            android:inputType="textPersonName"
+            android:maxLength="12" />
+
+        <Button
+            android:id="@+id/MessageSend"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send" />
+
+        <TextView
+            android:id="@+id/DebugText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

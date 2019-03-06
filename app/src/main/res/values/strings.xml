@@ -1,0 +1,33 @@
+<resources>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_login">LoginActivity</string>
+
+    <string name="app_name">Community Watch</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_phone">Phone Number</string>
+
+    <string name="hint_password">Password</string>
+    <string name="hint_passwordConfirm">Confirm Password</string>
+
+    <string name="hint_nameFirst">First Name</string>
+    <string name="hint_nameLast">Surname</string>
+
+    <string name="hint_addressLine1">Address Line 1</string>
+    <string name="hint_addressLine2">Address Line 2</string>
+
+    <string name="hint_country">Country</string>
+    <string name="hint_county">County</string>
+    <string name="hint_town">Town</string>
+
+    <string name="hint_whatsHappening">Please Describe What\'s Happening?</string>
+
+    <string name="btn_login">LOGIN</string>
+    <string name="btn_send">SEND</string>
+
+    <string name="btn_register">REGISTER</string>
+    <string name="btn_link_to_register">Don\'t have an account? Join here.</string>
+    <string name="btn_link_to_login">Already have an account? Login here.</string>
+    <string name="welcome">Welcome</string>
+    <string name="btn_logout">LOGOUT</string>
+    <string name="name">Fullname</string>
+</resources>
