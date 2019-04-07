@@ -24,6 +24,8 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,6 +38,9 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -108,14 +113,15 @@ public class LoginActivity extends AppCompatActivity {
 
     private void Login(){
 
-
+        /*
         final String emailValue = email.getText().toString();
         final String passwordValue = password.getText().toString();
 
         String url = ServerAddressHandler.getInstance().getAddress()+"loginUser";
 
         RequestQueue queue = Volley.newRequestQueue(this);
-
+        Toast.makeText(getApplicationContext(), url,
+                Toast.LENGTH_LONG).show();
         StringRequest postRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>()
                 {
@@ -173,6 +179,60 @@ public class LoginActivity extends AppCompatActivity {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
             queue.add(postRequest);
+
+            */
+
+        String url = ServerAddressHandler.getInstance().getAddress()+"Login";
+
+        //final ProgressDialog pDialog = new ProgressDialog(this.getActivity());
+        //pDialog.setMessage("Loading...");
+        //pDialog.show();
+        RequestQueue rq = Volley.newRequestQueue(this.getApplicationContext());
+        final String emailValue = email.getText().toString();
+        final String passwordValue = password.getText().toString();
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("email", emailValue);
+            params.put("password", passwordValue);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Toast.makeText(getApplicationContext(), url,
+                Toast.LENGTH_LONG).show();
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
+                url, params, //Not null.
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                       // Log.d(TAG, response.toString());
+                        // pDialog.hide();
+                            String responseString = response.toString();
+                            uo = gson.fromJson(responseString, UserObject.class);
+                            System.out.println(uo.getFirstName());
+                            Toast.makeText(getApplicationContext(), "Welcome "+uo.getFirstName(),
+                                    Toast.LENGTH_LONG).show();
+
+                            //Save login details to file
+                            fro.writeToFile(responseString,fileName,getApplicationContext());
+
+                            continueToNextActivity();
+                            finish();
+
+
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+               // VolleyLog.d(TAG, "Error: " + error.getMessage());
+                //pDialog.hide();
+            }
+        });
+
+// Adding request to request queue
+        rq.add(jsonObjReq);
 
     }
 

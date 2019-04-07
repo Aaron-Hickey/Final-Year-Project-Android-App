@@ -5,8 +5,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
+import android.support.annotation.DrawableRes;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,6 +33,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -37,6 +46,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 
 //import io.ably.lib.realtime.AblyRealtime;
@@ -45,6 +55,16 @@ import java.util.Map;
 //import io.ably.lib.types.ClientOptions;
 //import io.ably.lib.types.Message;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 //import com.pusher.client.Pusher;
@@ -62,7 +82,10 @@ import com.karumi.dexter.listener.single.PermissionListener;
 import com.pusher.pushnotifications.PushNotificationReceivedListener;
 import com.pusher.pushnotifications.PushNotifications;
 
-public class ReportActivity extends AppCompatActivity {
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class ReportActivity extends AppCompatActivity implements OnMapReadyCallback {
     private EditText messageDescription;
     private ListView messagesView;
     private UserObject uo;
@@ -70,7 +93,9 @@ public class ReportActivity extends AppCompatActivity {
     private Gson gson;
     private FileReaderObject fro;
     private String fileName = "Logged_In_User";
-
+    private GoogleMap mMap;
+    private final int Communication_Radius = 10000; //metres
+    private Circle circle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +136,9 @@ public class ReportActivity extends AppCompatActivity {
         messageDescription = findViewById(R.id.MessageDescription);
         messagesView = findViewById(R.id.messages_view);
         messagesView.setAdapter(messageAdapter);
+        messageAdapter.getStoredData();
+        messagesView.setSelection(messagesView.getCount() - 1);
+
 
         GetUserFromFile guff = new GetUserFromFile(getApplicationContext());
         uo = guff.getUser();
@@ -140,6 +168,10 @@ public class ReportActivity extends AppCompatActivity {
 
        // initPusher();
         newPusher();
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
     private void SendMessage(){
         final String messageDescriptionValue = messageDescription.getText().toString();
@@ -147,9 +179,9 @@ public class ReportActivity extends AppCompatActivity {
 
 
 
-        String url = ServerAddressHandler.getInstance().getAddress()+"sendMessage";
+        String url = ServerAddressHandler.getInstance().getAddress()+"Report";
 
-        RequestQueue queue = Volley.newRequestQueue(this);
+ /*       RequestQueue queue = Volley.newRequestQueue(this);
         StringRequest postRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>()
                 {
@@ -187,16 +219,51 @@ public class ReportActivity extends AppCompatActivity {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         queue.add(postRequest);
+*/
+        RequestQueue rq = Volley.newRequestQueue(this.getApplicationContext());
+
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("message", messageDescriptionValue);
+            params.put("id", ""+uo.getId());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Toast.makeText(getApplicationContext(), url,
+                Toast.LENGTH_LONG).show();
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
+                url, params, //Not null.
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Toast.makeText(getApplicationContext(), response.toString(),
+                                Toast.LENGTH_LONG).show();
+
+
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // VolleyLog.d(TAG, "Error: " + error.getMessage());
+                //pDialog.hide();
+            }
+        });
+
+// Adding request to request queue
+        rq.add(jsonObjReq);
 
         SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm");
         Date timeOfMessage = Calendar.getInstance().getTime();
         String timeOfMessageString = DATE_FORMAT.format(timeOfMessage);
 
-        final Message message = new Message(messageDescriptionValue, "Aaron", true, timeOfMessageString);
+        final Message message = new Message(messageDescriptionValue, uo.getFirstName(), true, timeOfMessageString);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                List<Message> messages = new ArrayList<Message>();
+                List<Message> messages;
 
                 gson = new Gson();
                 fro = new FileReaderObject();
@@ -398,6 +465,76 @@ public class ReportActivity extends AppCompatActivity {
             builder.create().show();
         }
     }
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        // Add a center in Sydney and move the camera
+    //    MapUpdater mu = new MapUpdater(uo,mMap);
+     //   mu.start();
+        mMap = googleMap;
+        final Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            public void run() {
+                // UI code goes here
+            //    while (true) {
+
+
+               //     while (true)
+                //    {
+
+
+                    //}
+             //   }
+            }
+        });
+        LatLng center = new LatLng(uo.getLatitude(), uo.getLongitude());
+        circle = mMap.addCircle(new CircleOptions()
+                .center(center).strokeWidth(0)
+                .radius(Communication_Radius)
+                .fillColor(Color.GRAY))
+        ;
+
+        // mMap.addMarker(new MarkerOptions().position(center).title("You").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(center));
+        mMap.setMaxZoomPreference(10);
+        mMap.setMinZoomPreference(10);
+        new Thread(new Runnable() {
+            public void run(){
+
+
+                while (true) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            LatLng newCenter = new LatLng(uo.getLatitude(), uo.getLongitude());
+                         //   LatLng newCenter = new LatLng(getRandomNumberInRange(0,90), getRandomNumberInRange(0,180)); //Randomly moves the center for testing
+                            circle.setCenter(newCenter);
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(newCenter));
+                            System.out.println("Moving circle center to "+newCenter.latitude+" "+newCenter.longitude);
+                        }
+                    });
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+
+    }
+
+    /*
+    private static int getRandomNumberInRange(int min, int max) {
+
+        if (min >= max) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+
+        Random r = new Random();
+        return r.nextInt((max - min) + 1) + min;
+    }
+*/
 
 }
 

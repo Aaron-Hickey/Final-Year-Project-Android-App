@@ -24,6 +24,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
@@ -33,6 +34,9 @@ import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -91,6 +95,7 @@ public class LocationUpdaterService extends IntentService {
                 public void onLocationChanged(Location location) {
 
                     System.out.println("The location changed!!" + location.getLatitude() + " "+location.getLongitude());
+                    //test
                 }
 
                 public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -103,19 +108,35 @@ public class LocationUpdaterService extends IntentService {
                 }
             };
 
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30000, 100, locationListener);
 
                 while (true) {
 
                     location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-                    if (location != null) {
-                        System.out.println("Last known location " + location.getLongitude() + " " + location.getLatitude());
+                    if (location.getLatitude() == 0.0 && location.getLongitude() == 0.0) {
 
-                        updateServer();
+                        System.out.println("Couldnt get position");
+
+                    }
+                    else
+                    {
+                        System.out.println("Last known location " + location.getLongitude() + " " + location.getLatitude());
+                        if(uo.getLongitude() == location.getLongitude() && uo.getLatitude() == location.getLatitude())
+                        {
+                            System.out.println("No position update");
+                        }
+                        else
+                        {
+                            System.out.println("Updating Server");
+                            uo.setLongitude(location.getLongitude());
+                            uo.setLatitude(location.getLatitude());
+                            updateServer();
+
+                        }
+                        Thread.sleep(1000);
                     }
 
-                    Thread.sleep(5000);
 
                 }
 
@@ -135,8 +156,8 @@ public class LocationUpdaterService extends IntentService {
     private void updateServer() {
 
 
-        String url = ServerAddressHandler.getInstance().getAddress()+"updateUserPosition";
-
+        String url = ServerAddressHandler.getInstance().getAddress()+"UpdateLocation";
+/*
         RequestQueue queue = Volley.newRequestQueue(this);
         StringRequest postRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>()
@@ -174,7 +195,40 @@ public class LocationUpdaterService extends IntentService {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         queue.add(postRequest);
+*/
 
+        RequestQueue rq = Volley.newRequestQueue(this.getApplicationContext());
+
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("id",""+uo.getId());
+            params.put("longitude", ""+location.getLongitude());
+            params.put("latitude", ""+location.getLatitude());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Toast.makeText(getApplicationContext(), url,
+                Toast.LENGTH_LONG).show();
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
+                url, params, //Not null.
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // VolleyLog.d(TAG, "Error: " + error.getMessage());
+                //pDialog.hide();
+            }
+        });
+
+// Adding request to request queue
+        rq.add(jsonObjReq);
 
     }
 

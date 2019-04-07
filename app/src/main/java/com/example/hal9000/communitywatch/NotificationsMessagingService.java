@@ -110,7 +110,7 @@ public class NotificationsMessagingService extends MessagingService {
 
         NotificationChannel mChannel = new NotificationChannel("Message Notification", name, importance);
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        long[] v = {500,1000,500,1000,500};
+        long[] v = {0,500,250,500,250};
         AudioAttributes att = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
